@@ -1,0 +1,4 @@
+com.teresoft.serrano.relatorio.RelatorioRepository
+	getByName(String name)
+		from Relatorio r where r.nome = :name
+	

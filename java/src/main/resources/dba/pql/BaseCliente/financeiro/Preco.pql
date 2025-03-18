@@ -1,0 +1,3 @@
+com.teresoft.serrano.financeiro.preco.PrecoRepository
+	getPreco(Produto produto, UnidadeMedida unidade)
+		from Preco p where p.produto = :produto and p.unidaDeMedida = :unidade

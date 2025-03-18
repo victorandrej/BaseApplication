@@ -1,0 +1,6 @@
+com.teresoft.serrano.financeiro.movimentacao.repository.MovimentacaoRepository
+	
+	getDespesasGastos(String query) 
+		select new com.teresoft.serrano.financeiro.movimentacao.MovimentoDTO(sum(m.valorLiquido),sum(m.valorBruto),m.tipo)
+		from ( select this.valorLiquido as valorLiquido, this.valorBruto as valorBruto, this.tipo as tipo :replace(:query) ) as m 
+		group by m.tipo order by m.tipo

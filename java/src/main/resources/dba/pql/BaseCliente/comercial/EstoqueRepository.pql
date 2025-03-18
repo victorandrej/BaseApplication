@@ -1,0 +1,3 @@
+com.teresoft.serrano.comercial.estoque.repository.EstoqueRepository
+	getAllEstoque()
+		from Estoque e

@@ -1,0 +1,4 @@
+com.teresoft.serrano.cadastro.pessoa.repository.PessoaRepository
+
+	findAll()
+		from Pessoa e

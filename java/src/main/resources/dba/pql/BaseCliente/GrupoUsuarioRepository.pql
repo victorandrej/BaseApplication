@@ -1,0 +1,9 @@
+ com.teresoft.serrano.seguranca.repository.GrupoUsuarioRepository
+
+    findAll(String name)
+      select g from GrupoUsuario g
+      where
+      lower(g.nome) like lower(concat(concat('%',:name),'%'))
+      or lower(g.descricao) like lower(concat(concat('%',:name),'%'))
+      or cast(g.id as text) like concat(concat('%',:name),'%')
+

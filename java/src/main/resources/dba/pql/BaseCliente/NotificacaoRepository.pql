@@ -1,0 +1,6 @@
+com.teresoft.serrano.view.desktop.repository.NotificacaoRepository
+
+  getAllNotificacaoByUsuarioAndDataOrderByDataDesc(Usuario usuario,Date data)
+    from Notificacao notificacao
+    where notificacao.usuario = :usuario and notificacao.data = :data
+    order by data desc
