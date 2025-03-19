@@ -2,6 +2,7 @@ package base.web.javascript;
 
 import java.util.List;
 
+import base.ipc.Export;
 import base.ipc.Service;
 
 import base.web.javascript.JavaScript.CallBack;
@@ -18,12 +19,13 @@ public class JavaScriptService {
   }
 
 
+  @Export
 	public void resolve(JSRetorno jsRetorno,Boolean hasError)   {
 		js.resolve(jsRetorno,hasError);
 	}
 
 
-
+  @Export
 	public CallBack resolveCallBack(String id,List<JSRetorno> parameters) throws Exception   {
 		return js.resolveCallBack(id, parameters);
 	}
