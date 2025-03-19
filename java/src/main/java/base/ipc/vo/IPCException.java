@@ -2,7 +2,6 @@ package base.ipc.vo;
 
 import base.exception.SerranoException;
 
-import jakarta.validation.ConstraintViolationException;
 
 public class IPCException{
 	private String className;
@@ -19,11 +18,6 @@ public class IPCException{
 	}
 
 	private String getMessage(Throwable t) {
-		if (t instanceof ConstraintViolationException) {
-			return ((ConstraintViolationException) t).getConstraintViolations().stream().map(c -> c.getMessage())
-					.reduce("", (s1, s2) -> s1 + "\n" + s2);
-		}
-
 		return t.getMessage();
 	}
 

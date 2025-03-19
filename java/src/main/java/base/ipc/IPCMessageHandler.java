@@ -3,8 +3,6 @@ package base.ipc;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.annotation.Nullable;
-
 import base.Application;
 import base.util.ClassUtil;
 import org.cef.CefClient;
@@ -124,7 +122,7 @@ public class IPCMessageHandler extends CefMessageRouterHandlerAdapter {
     return true;
   }
 
-  private void call(CefBrowser browser, IPCCallRequest ipcRequest, @Nullable CefQueryCallback callback) {
+  private void call(CefBrowser browser, IPCCallRequest ipcRequest,   CefQueryCallback callback) {
     currMessageHandler.set(this);
     Boolean hasError = false;
     AtomicReference<String> json = new AtomicReference<>();
