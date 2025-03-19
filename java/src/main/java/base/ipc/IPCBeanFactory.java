@@ -37,7 +37,7 @@ public class IPCBeanFactory implements BeanFactory {
 
     var beans = configuration.getBeans();
     for (var bean : beans)
-      if (bean.getBeanClass().isAnnotationPresent(Allowed.class)) {
+      if (bean.getBeanClass().isAnnotationPresent(Service.class)) {
         bean.setBeanClass(proxyClass(bean.getBeanClass()));
       }
 

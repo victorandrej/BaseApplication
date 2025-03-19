@@ -2,12 +2,12 @@ package base.web.javascript;
 
 import java.util.List;
 
-import base.ipc.Allowed;
+import base.ipc.Service;
 
 import base.web.javascript.JavaScript.CallBack;
 import io.github.victorandrej.tinyioc.steriotypes.Bean;
 
-@Allowed
+@Service
 @Bean
 public class JavaScriptService {
 

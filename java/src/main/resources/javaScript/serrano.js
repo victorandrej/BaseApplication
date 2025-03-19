@@ -1,7 +1,6 @@
-/**
- *
- * NÃO EXPORTE CLASSES NESTE ARQUIVO
- */
+ { IPCCallRequest, Include };
+class Include {
+}
 class SerranoImpl {
     requests = new Map();
     objetos = {};
@@ -206,12 +205,12 @@ class SerranoImpl {
         function handlerCall() {
             let metadado = new MetadataRequestImpl();
             metadado.__methodInfo__ = methodInfo;
-            let promise = new Promise((resolve, reject) => {
+            let promiseService = new Promise((resolve, reject) => {
                 metadado.__promiseReject__ = reject;
                 metadado.__promiseResolve__ = resolve;
                 serrano.IPC_PROMISE_HANDLERS.push(metadado);
             });
-            return promise;
+            return promiseService;
         }
         return methodInfo.isPromise ? handlerCall : normalCall;
     }
@@ -256,7 +255,7 @@ class MethodInfoImpl {
     isPromise;
     paramsClass;
 }
- class IPCCallRequest {
+class IPCCallRequest {
     beanName;
     beanClassName;
     methodName;

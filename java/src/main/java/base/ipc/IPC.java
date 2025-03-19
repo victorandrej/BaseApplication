@@ -1,9 +1,6 @@
 package base.ipc;
 
-import java.io.IOException;
 import java.lang.reflect.*;
-import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -14,26 +11,22 @@ import io.github.victorandrej.tinyioc.IOC;
 import io.github.victorandrej.tinyioc.annotation.Inject;
 import io.github.victorandrej.tinyioc.exception.NoSuchBeanException;
 import io.github.victorandrej.tinyioc.steriotypes.Bean;
-import io.jsonwebtoken.lang.Arrays;
 import org.apache.commons.configuration2.Configuration;
-import org.apache.commons.io.IOUtils;
 
 import com.google.gson.Gson;
 import base.Application;
 import base.Window;
 
 import base.exception.SerranoException;
-import base.ipc.exception.AccessDeniedException;
 import base.ipc.exception.BeanNotAllowedException;
 import base.ipc.model.MethodInfo;
 import base.ipc.vo.IPCHandlerResponse;
 import base.ipc.vo.IPCResponse;
-import base.util.ResourceUtils;
 import base.web.javascript.JavaScript;
 
 
 @Bean()
-@Allowed
+@Service
 public class IPC {
   private static final String SERRANO_JS_DIR = "javaScript/serrano.js";
 
@@ -81,7 +74,7 @@ public class IPC {
       Object bean = ioc.getInstance(Class.forName(className), beanName);
       Class<?> beanClass = bean.getClass();
 
-      if (!beanClass.isAnnotationPresent(Allowed.class))
+      if (!beanClass.isAnnotationPresent(Service.class))
         throw new BeanNotAllowedException("Bean nao disponivel");
 
       Method[] beanMethods = beanClass.getMethods();
@@ -111,7 +104,7 @@ public class IPC {
 
   }
 
-  @SuppressWarnings("unchecked")
+
   public Object call(IPCCallRequest request) throws Exception {
 
     try {
@@ -188,35 +181,35 @@ public class IPC {
     AtomicReference<Object> value = new AtomicReference<>();
 
 
-    IpcChain defaultChain = (c, m) -> {
+    IpcChain defaultChain = (c, m,p) -> {
       value.set(m.invoke(bean, parsedParameters));
     };
 
-    doChain(method, defaultChain);
+    doChain(method, defaultChain,parsedParameters);
 
     return new IPCResponse(value.get(), iPCCall.getUuid(), false);
 
   }
 
 
-  private IpcChain createChain(Method method, Iterator<IpcChain> chains) {
+  private IpcChain createChain(Method method, Iterator<IpcChain> chains,Object[]parameters) {
     return new IpcChain() {
       @Override
-      public void doChain(IpcChain chain, Method method) throws Exception {}
+      public void doChain(IpcChain chain, Method method,Object[] parameters) throws Exception {}
 
       @Override
       public void doChain() throws Exception {
         if (chains.hasNext())
-          chains.next().doChain(createChain(method, chains), method);
+          chains.next().doChain(createChain(method, chains,parameters), method,parameters);
       }
     };
   }
 
-  private void doChain(Method method, IpcChain defaultChain) throws Exception {
+  private void doChain(Method method, IpcChain defaultChain, Object[] parameters) throws Exception {
     var chains = new ArrayList<IpcChain>();
     chains.addAll(this.ipcChain);
     chains.add(defaultChain);
-    createChain(method, chains.iterator()).doChain();
+    createChain(method, chains.iterator(),parameters).doChain();
   }
 
   public void send(String methodName, String beanName, Object valor, Boolean hasError, IPCMessageHandler handler) {

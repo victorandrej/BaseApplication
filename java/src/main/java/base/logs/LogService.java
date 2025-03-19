@@ -6,11 +6,11 @@ import java.io.IOException;
 import io.github.victorandrej.tinyioc.steriotypes.Bean;
 
 
-import base.ipc.Allowed;
+import base.ipc.Service;
 
 
 @Bean
-@Allowed
+@Service
 public class LogService {
 
   private FileLogService fileLogService ;
