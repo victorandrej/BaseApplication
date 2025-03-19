@@ -256,7 +256,7 @@ class MethodInfoImpl {
     isPromise;
     paramsClass;
 }
-export class IPCCallRequest {
+ class IPCCallRequest {
     beanName;
     beanClassName;
     methodName;

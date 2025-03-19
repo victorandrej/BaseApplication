@@ -13,13 +13,13 @@ import io.github.victorandrej.tinyioc.steriotypes.Bean;
 import org.cef.browser.CefBrowser;
 
 @Bean(beanName = "ipcPromise", classOrder = IPCBeanFactory.class, order = BeanOrder.BEFORE)
-public class Promise {
+public class PromiseService {
 
 
   IPC ipc;
   IOC ioc;
 
-  public Promise(IPC ipc, IOC ioc) {
+  public PromiseService(IPC ipc, IOC ioc) {
     this.ipc = ipc;
     this.ioc = ioc;
   }

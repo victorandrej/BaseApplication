@@ -19,7 +19,7 @@ public class Application {
   public static final boolean IS_DEV_MODE = java.lang.management.ManagementFactory.getRuntimeMXBean()
     .getInputArguments().stream().anyMatch(s -> s.contains("jdwp"));
 
-  private static final String VERSAO_PROPRIEDADE = "serrano.version";
+
   public static final Long session =  new Random().nextLong();
 
   private static IOC ioc;
@@ -27,7 +27,7 @@ public class Application {
   private static Boolean isStarted = false;
   private static long thisPID = ProcessHandle.current().pid();
    static Window window;
-  private static String versao;
+
 
   public static void main(String[] args) throws Exception {
 
@@ -58,7 +58,6 @@ public class Application {
     System.arraycopy(args, 0, Application.args, 0, args.length);
 
     ioc = IOCBuilder.configure().useScan().build();
-    versao =   ioc.getInstance(Configuration.class).getString(VERSAO_PROPRIEDADE);
     if (!isStarted) {
       lazyRunner.start();
       Runtime.getRuntime().addShutdownHook(new Thread(lazyRunner::exit));
@@ -66,13 +65,6 @@ public class Application {
 
     isStarted = true;
 
-  }
-
-
-  public static String versao() {
-    if (!isStarted)
-      throw new RuntimeException("Versao apenas desponivel apos inicializacao");
-    return versao;
   }
 
   /**

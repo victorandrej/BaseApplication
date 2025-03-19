@@ -35,7 +35,7 @@ public class JSElementAdapter extends TypeAdapter<JSElement> {
 	SimpleDateFormat simpleDateFormat;
 
 	public JSElementAdapter(Configuration configuration, IOC ioc) {
-		simpleDateFormat = new SimpleDateFormat(configuration.getString("serrano.date.pattern"));
+		simpleDateFormat = new SimpleDateFormat(configuration.getString("date.pattern"));
     this.ioc = ioc;
     init();
 	}

@@ -2,6 +2,7 @@ package base.ipc;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.util.Objects;
 import java.util.concurrent.Callable;
 
 
@@ -20,14 +21,14 @@ import net.bytebuddy.implementation.bind.annotation.RuntimeType;
 import net.bytebuddy.implementation.bind.annotation.SuperCall;
 import net.bytebuddy.matcher.ElementMatchers;
 
-@Bean(priority = Ring0.class,order = BeanOrder.BEFORE,classOrder = WindowFactory.class)
+@Bean(priority = Ring0.class, order = BeanOrder.BEFORE, classOrder = WindowFactory.class)
 public class IPCBeanFactory implements BeanFactory {
 
-  Promise promise;
+  PromiseService promiseService;
 
 
-  public IPCBeanFactory(Promise promise,ConfigurationImpl configuration) {
-    this.promise = promise;
+  public IPCBeanFactory(PromiseService promiseService, ConfigurationImpl configuration) {
+    this.promiseService = promiseService;
     init(configuration);
   }
 
@@ -36,7 +37,7 @@ public class IPCBeanFactory implements BeanFactory {
 
     var beans = configuration.getBeans();
     for (var bean : beans)
-      if (bean.getBeanClass().isAnnotationPresent(Allowed.class)){
+      if (bean.getBeanClass().isAnnotationPresent(Allowed.class)) {
         bean.setBeanClass(proxyClass(bean.getBeanClass()));
       }
 
@@ -51,7 +52,7 @@ public class IPCBeanFactory implements BeanFactory {
 
   public Class<?> proxyClass(Class<?> clazz) {
     Constructor c = clazz.getConstructors()[0];
-    var interceptor = new IPCInterceptor(promise);
+    var interceptor = new IPCInterceptor(promiseService);
     var builder = new ByteBuddy().subclass(clazz).annotateType(clazz.getAnnotations())
       .constructor(ElementMatchers.any()).intercept(MethodCall.invoke(c).withAllArguments());
 
@@ -60,7 +61,7 @@ public class IPCBeanFactory implements BeanFactory {
     Boolean changed = false;
     for (Method method : clazz.getDeclaredMethods()) {
 
-      if (method.isAnnotationPresent(Permissao.class)) {
+      if (method.isAnnotationPresent(Export.class)) {
         changed = true;
         methodDefinition = (isFirst ? builder : methodDefinition)
           .method(ElementMatchers.named(method.getName())
@@ -79,38 +80,34 @@ public class IPCBeanFactory implements BeanFactory {
   }
 
 
-
   public class IPCInterceptor {
 
-    Promise promise;
+    PromiseService promiseService;
 
-    public IPCInterceptor(Promise promise) {
-      this.promise = promise;
+    public IPCInterceptor(PromiseService promiseService) {
+      this.promiseService = promiseService;
     }
 
     @RuntimeType
     public Object intercept(@SuperCall Callable<?> superMethod, @Origin Method method) throws Throwable {
 
-      Permissao p = method.getAnnotation(Permissao.class);
+      Export ex = method.getAnnotation(Export.class);
       Boolean hasError = false;
-      Object value;
+      Object value = null;
 
       try {
-        value = superMethod.call();
+        return value = superMethod.call();
       } catch (Exception e) {
         value = e;
         hasError = true;
-      }
-
-      if (p.isPromise())
-        if (hasError)
-          promise.reject(value, method);
-        else
-          promise.resolve(value, method);
-
-      if (hasError)
         throw (Throwable) value;
-      return value;
+      } finally {
+        if (Objects.nonNull(ex) && ex.isPromise())
+          if (hasError)
+            promiseService.reject(value, method);
+          else
+            promiseService.resolve(value, method);
+      }
     }
   }
 

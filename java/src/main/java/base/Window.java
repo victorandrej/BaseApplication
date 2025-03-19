@@ -45,7 +45,7 @@ public class Window extends CefMessageRouterHandlerAdapter {
   private Component browerUI_;
 
   private Boolean isFullScreen = false;
-  private SerranoFrame currFrame;
+  private WindowFrame currFrame;
   private JPanel buttonPanel;
 
   private LazyRunner lazyRunner = new LazyRunner();
@@ -159,7 +159,7 @@ public class Window extends CefMessageRouterHandlerAdapter {
     createHandler();
 
 
-    if (true) {
+    if (Application.IS_DEV_MODE) {
       JButton devToolsButton = new JButton("Open DevTools");
 
       devToolsButton.addActionListener(new ActionListener() {
@@ -193,7 +193,7 @@ public class Window extends CefMessageRouterHandlerAdapter {
   }
 
   private void createFrame() {
-    this.currFrame = new SerranoFrame(buttonPanel, browerUI_);
+    this.currFrame = new WindowFrame(buttonPanel, browerUI_);
   }
 
   private void createDevToolsWindow() {
@@ -228,9 +228,9 @@ public class Window extends CefMessageRouterHandlerAdapter {
     this.open();
   }
 
-  private static class SerranoFrame extends JFrame {
+  private static class WindowFrame extends JFrame {
 
-    public SerranoFrame(Component debugComponent, Component browser) {
+    public WindowFrame(Component debugComponent, Component browser) {
       getContentPane().add(browser, BorderLayout.CENTER);
       if (Objects.nonNull(debugComponent))
         getContentPane().add(debugComponent, BorderLayout.SOUTH);

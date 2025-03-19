@@ -2,7 +2,7 @@ package base.logs;
 
 import java.io.IOException;
 
-import base.ipc.Permissao;
+
 import io.github.victorandrej.tinyioc.steriotypes.Bean;
 
 
@@ -20,7 +20,7 @@ public class LogService {
   }
 
 
-  @Permissao(isPromise = true, value = Permissao.LOGADOS)
+
   public Log send(String line, LogSeverity severity) throws IOException {
 
     fileLogService.write(line,severity);
@@ -33,7 +33,7 @@ public class LogService {
     return log;
 
   }
-  @Permissao( value = Permissao.LOGADOS)
+
   public FileLogService.FileLog getLogs(Long ponteiro,Integer rows) throws IOException {
     return  this.fileLogService.read(ponteiro,rows);
   }

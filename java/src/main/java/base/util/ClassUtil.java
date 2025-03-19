@@ -64,8 +64,16 @@ public final class ClassUtil {
         throw (T) exception;
     }
 
+  public static void supressThrow( Runnable r) {
+      try {
+        r.run();
+      }catch (Exception e){
 
-    public interface Runnable {
+      }
+  }
+
+
+  public interface Runnable {
         public void run() throws Exception;
     }
 

@@ -3,7 +3,13 @@ import './App.css'
 function App() {
 
   return (
-    <>Comece editando o arquivo App.tsx</>
+    <>
+ 
+
+    <div id="message">
+      Comece editando o arquivo App.tsx
+    </div>
+    </>
   )
 }
 

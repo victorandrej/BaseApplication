@@ -1,7 +1,0 @@
-com.teresoft.serrano.seguranca.repository.UsuarioPreferenciaRepository
-	
-	
-	getPreferencia(String nome,Usuario usuario)
-		from UsuarioPreferencia up 
-			where		
-			up.nome = :nome and up.usuario = :usuario

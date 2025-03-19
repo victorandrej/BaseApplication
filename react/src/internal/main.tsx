@@ -17,13 +17,10 @@ function Main() {
     let timer = setInterval(async () => {
 
       if (await isAlive()) {
-        await startSerranoScript()
         setStarted(true);
+        clearInterval(timer);
       }
     }, 500)
-    return () => {
-      clearInterval(timer);
-    };
   }, []);
 
   if (isStarted)

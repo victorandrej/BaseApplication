@@ -1,10 +1,15 @@
+export {Serrano,IPCCallRequest,Include}
+
+class Include{
+    //CLASSE USADA PARA incluir este arquivo na compilacao 
+}
 
 /**
  *
  * NÃO EXPORTE CLASSES NESTE ARQUIVO
  */
 
-export interface Serrano {
+ interface Serrano {
     requests: Map<string, MetadataRequest>;
     objetos: any;
     IPC_PROMISE_HANDLERS: MetadataRequest[];
@@ -285,7 +290,7 @@ class SerranoImpl implements Serrano {
 
             metadado.__methodInfo__ = methodInfo;
 
-            let promise = new Promise((resolve, reject) => {
+            let promiseService = new Promise((resolve, reject) => {
                 metadado.__promiseReject__ = reject;
                 metadado.__promiseResolve__ = resolve;
                 serrano.IPC_PROMISE_HANDLERS.push(
@@ -294,7 +299,7 @@ class SerranoImpl implements Serrano {
 
             });
 
-            return promise
+            return promiseService
         }
 
         return methodInfo.isPromise ? handlerCall : normalCall;
@@ -365,7 +370,8 @@ class MethodInfoImpl {
     public paramsClass: string[];
 }
 
-export class IPCCallRequest {
+
+class IPCCallRequest {
     constructor(public readonly beanName: string, public readonly beanClassName:string ,public readonly methodName: string, public readonly parametersType: string[],
 
         public readonly parameters: any[], public readonly uuid: string

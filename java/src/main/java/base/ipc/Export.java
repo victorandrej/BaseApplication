@@ -5,13 +5,10 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Permissao {
-	public static String LOGADOS = "*";
-	public static String TODOS = "ALL";
+@Target(ElementType.METHOD)
+public @interface Export {
 
-	public String[] value();
+  boolean isPromise() default  false;
 
-	public boolean isPromise() default false;
 }

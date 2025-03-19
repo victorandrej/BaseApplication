@@ -1,15 +1,20 @@
 package base.ipc;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.*;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
+import io.github.victorandrej.tinyioc.IOC;
+import io.github.victorandrej.tinyioc.annotation.Inject;
 import io.github.victorandrej.tinyioc.exception.NoSuchBeanException;
 import io.github.victorandrej.tinyioc.steriotypes.Bean;
+import io.jsonwebtoken.lang.Arrays;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.io.IOUtils;
 
@@ -27,14 +32,13 @@ import base.util.ResourceUtils;
 import base.web.javascript.JavaScript;
 
 
-
 @Bean()
+@Allowed
 public class IPC {
   private static final String SERRANO_JS_DIR = "javaScript/serrano.js";
 
 
-
-  IPCService ipcService;
+  IOC ioc;
 
   Gson gson;
 
@@ -42,44 +46,61 @@ public class IPC {
 
   JavaScript js;
 
+  private Collection<IpcChain> ipcChain;
+
   Boolean logarExcecao;
   private volatile boolean injected = false;
   private List<Runnable> injections = new ArrayList<>();
 
   public IPC(
-    IPCService ipcService,
+    IOC ioc,
     Gson gson,
     Window window,
     JavaScript js,
-    Configuration configuration) throws Exception {
-
-    this.ipcService = ipcService;
+    Configuration configuration,
+    @Inject(optional = true) Collection<IpcChain> ipcChain
+  ) throws Exception {
+    this.ipcChain = Objects.isNull(ipcChain) ? new ArrayList<>() : ipcChain;
+    this.ioc = ioc;
     this.gson = gson;
     this.window = window;
     this.js = js;
     this.logarExcecao = configuration.getBoolean("   serrano.log.exception", false);
   }
 
-
-  public void startSerranoScript() throws IOException, URISyntaxException, Exception {
-    ResourceUtils.getResourceFiles(SERRANO_JS_DIR).execute((r) -> {
-      js.injectScript(IOUtils.toString(r.getInputStream(), StandardCharsets.UTF_8.name()),
-        window.getBrowser());
-      injected = true;
-      injections.forEach(ru -> ru.run());
-    });
-
-  }
-
   public Boolean isAlive() {
     return Application.isStarted();
   }
 
-
+  @Export
   public List<MethodInfo> getBeanInfo(String beanName, String className) throws SerranoException {
 
     try {
-      return ipcService.getBeanInfo(beanName, className);
+
+      List<MethodInfo> methodsInfos = new ArrayList<>();
+      Object bean = ioc.getInstance(Class.forName(className), beanName);
+      Class<?> beanClass = bean.getClass();
+
+      if (!beanClass.isAnnotationPresent(Allowed.class))
+        throw new BeanNotAllowedException("Bean nao disponivel");
+
+      Method[] beanMethods = beanClass.getMethods();
+
+      for (Method method : beanMethods) {
+        Export export = method.getDeclaredAnnotation(Export.class);
+
+        if (!Modifier.isPublic(method.getModifiers()) || Objects.isNull(export))
+          continue;
+
+        MethodInfo methodInfo = new MethodInfo(method.getName(), beanName, className, export.isPromise());
+
+        for (Parameter parameter : method.getParameters()) {
+          methodInfo.getParamsClass().add(parameter.getType().getName());
+        }
+        methodsInfos.add(methodInfo);
+      }
+
+      return methodsInfos;
     } catch (NoSuchBeanException e) {
       throw new SerranoException("", "Bean nao existe Bean Class: " + className + " Bean Name: " + beanName);
     } catch (BeanNotAllowedException e) {
@@ -107,16 +128,98 @@ public class IPC {
 
   }
 
-  public Object callMethod(IPCCallRequest iPCCall)
-    throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException,
-    SecurityException, ClassNotFoundException, AccessDeniedException {
+  private Class<?>[] createParametersType(List<String> parametersType) throws ClassNotFoundException {
+    List<Class<?>> parametersClassType = new ArrayList();
 
-    return new IPCResponse(ipcService.callMethod(iPCCall), iPCCall.getUuid(), false);
+    for (String parameter : parametersType) {
+      parametersClassType.add(Class.forName(parameter));
+    }
+
+    return parametersClassType.toArray(new Class<?>[0]);
 
   }
 
-  public void send(String methodName, String beanName, Object valor, Boolean hasError, IPCMessageHandler handler) {
+  private Object[] parseParameters(Method method, List<Object> parameters) {
 
+    List<Object> parsedParameters = new ArrayList<>();
+    Parameter[] methodParameters = method.getParameters();
+    for (int i = 0; i < parameters.size(); i++) {
+      Object parameterValue = parameters.get(i);
+      var parameter = methodParameters[i];
+      Type parameterClassType = parameter.getParameterizedType() instanceof ParameterizedType ? getType(methodParameters[i]) : parameter.getType();
+      JsonElement elementParameter = gson.toJsonTree(parameterValue);
+      Object parsedParameter = Objects.isNull(elementParameter) || (elementParameter instanceof JsonNull) ? null
+        : gson.fromJson(elementParameter, parameterClassType);
+
+      parsedParameters.add(parsedParameter);
+    }
+
+    return parsedParameters.toArray();
+  }
+
+  private static Type getType(Parameter parameter) {
+    return (Type) new ParameterizedType() {
+      @Override
+      public Type[] getActualTypeArguments() {
+        return ((ParameterizedType) parameter.getParameterizedType()).getActualTypeArguments();
+      }
+
+      @Override
+      public Type getRawType() {
+        return parameter.getType();
+      }
+
+      @Override
+      public Type getOwnerType() {
+        return null;
+      }
+    };
+  }
+
+  public Object callMethod(IPCCallRequest iPCCall)
+    throws Exception {
+
+    Object bean = ioc.getInstance(Class.forName(iPCCall.getBeanClassName()), iPCCall.getBeanName());
+    Class<?> beanClass = bean.getClass();
+    Method method = beanClass.getMethod(iPCCall.getMethodName(), createParametersType(iPCCall.getParametersType()));
+
+    Object[] parsedParameters = parseParameters(method, iPCCall.getParameters());
+
+    AtomicReference<Object> value = new AtomicReference<>();
+
+
+    IpcChain defaultChain = (c, m) -> {
+      value.set(m.invoke(bean, parsedParameters));
+    };
+
+    doChain(method, defaultChain);
+
+    return new IPCResponse(value.get(), iPCCall.getUuid(), false);
+
+  }
+
+
+  private IpcChain createChain(Method method, Iterator<IpcChain> chains) {
+    return new IpcChain() {
+      @Override
+      public void doChain(IpcChain chain, Method method) throws Exception {}
+
+      @Override
+      public void doChain() throws Exception {
+        if (chains.hasNext())
+          chains.next().doChain(createChain(method, chains), method);
+      }
+    };
+  }
+
+  private void doChain(Method method, IpcChain defaultChain) throws Exception {
+    var chains = new ArrayList<IpcChain>();
+    chains.addAll(this.ipcChain);
+    chains.add(defaultChain);
+    createChain(method, chains.iterator()).doChain();
+  }
+
+  public void send(String methodName, String beanName, Object valor, Boolean hasError, IPCMessageHandler handler) {
     handler.send(new IPCHandlerResponse(methodName, beanName, valor, hasError));
   }
 

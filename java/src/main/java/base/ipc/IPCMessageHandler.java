@@ -26,7 +26,7 @@ public class IPCMessageHandler extends CefMessageRouterHandlerAdapter {
   private static ThreadLocal<IPCMessageHandler> currMessageHandler = new ThreadLocal();
   private static ThreadLocal<CefBrowser> currBrowser = new ThreadLocal();
   private static Map<CefBrowser, IPCMessageHandler> messageHandlers = Collections.synchronizedMap(new HashMap<>());
-  private Collection<IpcChain> ipcChain;
+
 
   public static IPCMessageHandler getCurrMessageHandler() {
     return currMessageHandler.get();
@@ -58,7 +58,7 @@ public class IPCMessageHandler extends CefMessageRouterHandlerAdapter {
       handler.js = ioc.getInstance(JavaScript.class);
       handler.ipc = ioc.getInstance(IPC.class);
       handler.gson = ioc.getInstance(Gson.class);
-      handler.ipcChain = ioc.getInstancesCollection(IpcChain.class);
+
     });
   }
 
@@ -129,17 +129,7 @@ public class IPCMessageHandler extends CefMessageRouterHandlerAdapter {
     Boolean hasError = false;
     AtomicReference<String> json = new AtomicReference<>();
     try {
-
-      IpcChain lastChain = (c)->{
-        json.set(gson.toJson(ipc.call(ipcRequest)));
-      };
-
-      var chains = new ArrayList<IpcChain>();
-      chains.addAll(this.ipcChain);
-      chains.add(lastChain);
-      var iter = chains.iterator();
-      var i = iter.next();
-      i.chain(iter.hasNext() ? iter.next() : null);
+      json.set(gson.toJson(ipc.call(ipcRequest)));
     } catch (Exception e) {
       e.printStackTrace();
       json.set( gson.toJson(new IPCException(getNonNullCause(e))));

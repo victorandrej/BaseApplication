@@ -234,7 +234,6 @@
             </manifest>
             <manifestEntries>
               <Add-VM-Options>-Dfile.encoding=UTF8</Add-VM-Options>
-              <Premain-Class>com.teresoft.serrano.premain.SerranoPremain</Premain-Class>
             </manifestEntries>
           </archive>
 

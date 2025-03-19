@@ -16,6 +16,7 @@ def corrigir_js(dir):
             with open(caminho_completo, 'r') as file:
                 content = file.read()
             content = content.replace("export {};",'')
+            content = content.replace("export",'')
             with open(caminho_completo, 'w') as file:
                 file.write(content)
 

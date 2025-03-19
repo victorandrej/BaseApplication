@@ -1,9 +1,10 @@
 
 
 
-import {Serrano,IPCCallRequest } from "../../../../java/src/main/resources/typeScript/serrano"
+import {Serrano,Include } from "../../../../java/src/main/resources/typeScript/serrano"
  
 
+let include = Include; // apenas para incluir o arquivo na compilacao
 
 
 
@@ -48,26 +49,5 @@ function isAlive(): Promise<boolean> {
 
 }
 
-async function startSerranoScript(){
 
-  return new Promise((resolve,reject)=>{
-    let request: IPCCallRequest = new IPCCallRequest('iPC','com.teresoft.serrano.ipc.IPC','startSerranoScript',[],[],'none');
-
-
-    (window as any).ipc({
-      request: JSON.stringify(request),
-      onSuccess: function (response: string) {
-        resolve(true);
-      },
-      onFailure(code:number,error:string){
-        reject(JSON.parse(error))
-      }
-
-    });
-
-  });
-
-}
-
-
-export  {isAlive,execService,getSerrano,startSerranoScript};
+export { isAlive, execService, getSerrano };
