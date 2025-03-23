@@ -11,7 +11,7 @@
             value = undefined;
         }
 
-        serrano.doRequest('javaScriptService','com.teresoft.serrano.web.javascript.JavaScriptService','resolve',[ 'com.teresoft.serrano.web.javascript.JSRetorno', 'java.lang.Boolean'],
+        serrano.doRequest('javaScriptService','base.web.javascript.JavaScriptService','resolve',[ 'base.web.javascript.JSRetorno', 'java.lang.Boolean'],
             [{ type: type ,value: value ,identificador: id} , hasError],undefined,undefined,undefined,false
         );
 
